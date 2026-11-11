@@ -45,7 +45,11 @@ class FadeService : Service() {
         )
         // 二重に起動されたら、動いているフェードに任せる
         if (job?.isActive != true) {
-            job = scope.launch { fadeAndPause(store) }
+            running = true
+            job = scope.launch { fadeAndPause(store) }.also { started ->
+                // 完了・キャンセル（stopService・時間切れ・onDestroy）のどれでも下ろす
+                started.invokeOnCompletion { if (job === started) running = false }
+            }
         }
         return START_NOT_STICKY
     }
@@ -103,7 +107,16 @@ class FadeService : Service() {
         super.onDestroy()
     }
 
-    private companion object {
-        const val FADE_STEP_MILLIS = 200L
+    companion object {
+        private const val FADE_STEP_MILLIS = 200L
+
+        /**
+         * このプロセスでフェードが本当に動いているか。保存の状態（Fading）はプロセスが落ちたり
+         * 端末が再起動したりすると残るので、音量の後始末を止める判断にはこちらを使う。
+         * プロセスと一緒に消えるので、落ちたあとは false になり、後始末が戻せる。
+         * メインスレッドだけで読み書きする。
+         */
+        var running = false
+            private set
     }
 }

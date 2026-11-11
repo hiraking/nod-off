@@ -12,9 +12,7 @@ import android.os.Handler
 import android.os.Looper
 import android.service.notification.NotificationListenerService
 import io.github.hiraking.nodoff.core.RestorePolicy
-import io.github.hiraking.nodoff.core.TimerState
 import io.github.hiraking.nodoff.platform.MediaPauser
-import io.github.hiraking.nodoff.platform.NodOffStore
 
 /**
  * 通知へのアクセスを得るためのサービス。MediaPauser が getActiveSessions の ComponentName に使う。
@@ -113,8 +111,9 @@ class NodOffListenerService : NotificationListenerService() {
 
     private fun restore(trigger: RestorePolicy.Trigger) {
         // フェードの途中は FadeService が一時停止を確かめてから戻す。ここで戻すと保存が消え、
-        // そのあと 0 まで下げた音量が戻らなくなる
-        if (NodOffStore(this).state is TimerState.Fading) return
+        // そのあと 0 まで下げた音量が戻らなくなる。保存の状態（Fading）はプロセスが落ちても残るので、
+        // 「フェードが本当に動いているか」で判断する（落ちたあと・再起動のあとは戻す）
+        if (FadeService.running) return
         TimerController.dispatchRestore(this, trigger)
     }
 }

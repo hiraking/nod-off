@@ -73,7 +73,6 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import io.github.hiraking.nodoff.core.Config
 import io.github.hiraking.nodoff.core.RestorePolicy
-import io.github.hiraking.nodoff.core.TimerState
 import io.github.hiraking.nodoff.platform.MediaPauser
 import io.github.hiraking.nodoff.platform.NodOffStore
 import io.github.hiraking.nodoff.ui.NodOffColors
@@ -126,8 +125,9 @@ class SettingsActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // フェードの途中は FadeService が音量を戻す。ここで戻すと、下げ続けた音量が戻らなくなる
-        if (store.state !is TimerState.Fading) {
+        // フェードの途中は FadeService が音量を戻す。ここで戻すと、下げ続けた音量が戻らなくなる。
+        // 保存の状態（Fading）はプロセスが落ちても残るので、フェードが本当に動いているかで判断する
+        if (!FadeService.running) {
             TimerController.dispatchRestore(this, RestorePolicy.Trigger.APP_USED)
         }
         durationMin = store.defaultDurationMin
