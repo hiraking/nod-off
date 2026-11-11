@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
+import android.os.PowerManager
 import android.os.SystemClock
 import io.github.hiraking.nodoff.core.Config
 import io.github.hiraking.nodoff.core.FadeCurve
@@ -46,9 +47,17 @@ class FadeService : Service() {
         // 二重に起動されたら、動いているフェードに任せる
         if (job?.isActive != true) {
             running = true
+            // フォアグラウンドサービスだけでは CPU は起きたままにならない。フェード・一時停止・確認のあいだ
+            // （15 秒＋最大 6 秒）眠らないよう WakeLock を取る。取り忘れても 1 分で切れる
+            val wakeLock = getSystemService(PowerManager::class.java)
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "nodoff:fade")
+                .apply { acquire(WAKE_LOCK_TIMEOUT_MILLIS) }
             job = scope.launch { fadeAndPause(store) }.also { started ->
                 // 完了・キャンセル（stopService・時間切れ・onDestroy）のどれでも下ろす
-                started.invokeOnCompletion { if (job === started) running = false }
+                started.invokeOnCompletion {
+                    if (wakeLock.isHeld) wakeLock.release()
+                    if (job === started) running = false
+                }
             }
         }
         return START_NOT_STICKY
@@ -109,6 +118,7 @@ class FadeService : Service() {
 
     companion object {
         private const val FADE_STEP_MILLIS = 200L
+        private const val WAKE_LOCK_TIMEOUT_MILLIS = 60_000L
 
         /**
          * このプロセスでフェードが本当に動いているか。保存の状態（Fading）はプロセスが落ちたり

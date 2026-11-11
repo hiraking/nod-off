@@ -2,7 +2,9 @@ package io.github.hiraking.nodoff
 
 import android.content.Context
 import android.os.SystemClock
+import io.github.hiraking.nodoff.core.Effect
 import io.github.hiraking.nodoff.core.RestorePolicy
+import io.github.hiraking.nodoff.core.TimerState
 import io.github.hiraking.nodoff.core.TimerEvent
 import io.github.hiraking.nodoff.core.TimerMachine
 import io.github.hiraking.nodoff.platform.EffectRunner
@@ -18,10 +20,28 @@ object TimerController {
     @Synchronized
     fun dispatch(context: Context, event: TimerEvent) {
         val store = NodOffStore(context)
-        val transition = TimerMachine.reduce(store.state, event)
+        val transition = TimerMachine.reduce(currentState(context), event)
         // 副作用より先に保存する。FadeService のループはこの状態を見てフェードをやめる
         store.state = transition.state
         EffectRunner(context).run(transition.effects)
+    }
+
+    /**
+     * 保存された状態を、実態と合わせてから返す（TimerMachine.sanitize）。
+     * 再起動やフェード中のプロセスの終了で古くなった Running／Fading は Idle に戻し、残った通知とアラームも片づける。
+     */
+    @Synchronized
+    fun currentState(context: Context): TimerState {
+        val store = NodOffStore(context)
+        val saved = store.state
+        val sane = TimerMachine.sanitize(
+            saved, SystemClock.elapsedRealtime(), store.isStateFromThisBoot(), FadeService.running,
+        )
+        if (sane != saved) {
+            store.state = sane
+            EffectRunner(context).run(listOf(Effect.CancelFadeAlarm, Effect.ClearCountdown))
+        }
+        return sane
     }
 
     /** 保存された音量を RestorePolicy.shouldRestore に従って戻し、戻したら保存を消す */

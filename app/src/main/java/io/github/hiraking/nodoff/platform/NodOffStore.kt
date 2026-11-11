@@ -1,6 +1,7 @@
 package io.github.hiraking.nodoff.platform
 
 import android.content.Context
+import android.provider.Settings
 import io.github.hiraking.nodoff.core.Config
 import io.github.hiraking.nodoff.core.TimerState
 
@@ -10,6 +11,7 @@ import io.github.hiraking.nodoff.core.TimerState
  */
 class NodOffStore(context: Context) {
 
+    private val resolver = context.applicationContext.contentResolver
     private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     /** Idle／Running／Fading と endAt（elapsedRealtime のミリ秒）を保存する */
@@ -29,8 +31,15 @@ class NodOffStore(context: Context) {
                 is TimerState.Running -> editor.putString(KEY_STATE, STATE_RUNNING).putLong(KEY_END_AT, value.endAt)
                 is TimerState.Fading -> editor.putString(KEY_STATE, STATE_FADING).putLong(KEY_END_AT, value.endAt)
             }
+            // endAt は elapsedRealtime なので、どの起動で保存したかも残す（再起動したら意味を失う）
+            editor.putInt(KEY_BOOT_COUNT, currentBootCount())
             editor.commit()
         }
+
+    /** 保存された状態が、いまの起動で保存されたものか */
+    fun isStateFromThisBoot(): Boolean = prefs.getInt(KEY_BOOT_COUNT, -1) == currentBootCount()
+
+    private fun currentBootCount(): Int = Settings.Global.getInt(resolver, Settings.Global.BOOT_COUNT, -1)
 
     /** 既定の時間（分）。プリセット以外の値ならカスタム */
     var defaultDurationMin: Int
@@ -59,6 +68,7 @@ class NodOffStore(context: Context) {
         const val PREFS_NAME = "nodoff"
         const val KEY_STATE = "state"
         const val KEY_END_AT = "end_at"
+        const val KEY_BOOT_COUNT = "boot_count"
         const val KEY_DEFAULT_DURATION_MIN = "default_duration_min"
         const val KEY_TILE_ADDED = "tile_added"
         const val KEY_PENDING_RESTORE_VOLUME = "pending_restore_volume"

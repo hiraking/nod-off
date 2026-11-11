@@ -17,6 +17,11 @@ class NodOffTileService : TileService() {
 
     override fun onClick() {
         val store = NodOffStore(this)
+        // 利用者がタイルを使った＝起きている。前の晩に戻せなかった音量があれば戻す（設計書 §4.3）。
+        // フェードの途中なら、TileTapped の RestoreVolumeNow が戻すので、ここでは触らない
+        if (!FadeService.running) {
+            TimerController.dispatchRestore(this, RestorePolicy.Trigger.APP_USED)
+        }
         TimerController.dispatch(this, TimerEvent.TileTapped(SystemClock.elapsedRealtime(), store.defaultDurationMin))
         // dispatch の RefreshTile は次の listening で描かれる。いま見えているタイルもすぐ描き直す
         render()
@@ -27,13 +32,17 @@ class NodOffTileService : TileService() {
         NodOffStore(this).tileAdded = true
     }
 
-    /** クイックパネルが開かれたとき（または RefreshTile で頼まれたとき） */
+    /** パネルの編集からタイルが外されたとき。設定画面の「準備」に「タイルを追加」を戻す */
+    override fun onTileRemoved() {
+        NodOffStore(this).tileAdded = false
+    }
+
+    /**
+     * クイックパネルが開かれたとき（または RefreshTile で頼まれたとき）。描くだけで、音量は戻さない。
+     * RefreshTile はフェードの終わり（FadeEnded）にも来るので、ここで戻すと、一時停止を確かめられず
+     * まだ再生中なのに音量を戻してしまう（設計書 §3 の失敗）。音量を戻すのは onClick だけ。
+     */
     override fun onStartListening() {
-        // フェードの途中は FadeService が音量を戻す。ここで戻すと保存が消え、下げ続けた音量が戻らなくなる。
-        // 保存の状態（Fading）はプロセスが落ちても残るので、フェードが本当に動いているかで判断する
-        if (!FadeService.running) {
-            TimerController.dispatchRestore(this, RestorePolicy.Trigger.APP_USED)
-        }
         render()
     }
 
@@ -42,7 +51,7 @@ class NodOffTileService : TileService() {
         val store = NodOffStore(this)
         tile.icon = Icon.createWithResource(this, R.drawable.ic_logo_mono)
         tile.label = LABEL
-        when (val state = store.state) {
+        when (val state = TimerController.currentState(this)) {
             TimerState.Idle -> {
                 tile.state = Tile.STATE_INACTIVE
                 tile.subtitle = "${store.defaultDurationMin} 分"
@@ -61,8 +70,8 @@ class NodOffTileService : TileService() {
     private companion object {
         const val LABEL = "nod-off"
 
-        /** 残りのミリ秒を分に切り上げる（0 未満は 0） */
+        /** 残りのミリ秒を分に切り上げる（フェード中に終了時刻を過ぎても「残り 0 分」とは出さず 1 分で止める） */
         fun remainingMinutesCeil(remainingMillis: Long): Long =
-            if (remainingMillis <= 0) 0 else (remainingMillis + 59_999L) / 60_000L
+            if (remainingMillis <= 0) 1 else (remainingMillis + 59_999L) / 60_000L
     }
 }

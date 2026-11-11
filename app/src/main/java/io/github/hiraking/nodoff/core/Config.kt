@@ -16,4 +16,7 @@ object Config {
 
     /** カスタムで選べる時間の範囲（分） */
     val CUSTOM_DURATION_RANGE_MIN = 1..180
+
+    /** 終了時刻をこれ以上過ぎても Running／Fading のままなら、保存の状態が古い（アラームが届かなかった・プロセスが落ちた） */
+    const val STALE_GRACE_MILLIS = 60_000L
 }

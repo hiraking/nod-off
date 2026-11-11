@@ -96,6 +96,27 @@ object TimerMachine {
     private fun stopFadeIfFading(state: TimerState): List<Effect> =
         if (state is TimerState.Fading) listOf(Effect.StopFade, Effect.RestoreVolumeNow) else emptyList()
 
+    /**
+     * 保存された状態が実態と合っているかを確かめ、合っていなければ Idle を返す。
+     * - 前回の起動の状態（[sameBoot] が false）：elapsedRealtime が 0 からやり直しなので、endAt は意味を失っている
+     * - 終了時刻を [Config.STALE_GRACE_MILLIS] より過ぎた Running：アラームが届かなかった
+     * - 終了時刻を同じだけ過ぎ、フェードも動いていない Fading：フェードの途中でプロセスが落ちた
+     */
+    fun sanitize(state: TimerState, now: Long, sameBoot: Boolean, fadeRunning: Boolean): TimerState {
+        if (state == TimerState.Idle) return state
+        if (!sameBoot) return TimerState.Idle
+        val pastEnd = when (state) {
+            is TimerState.Running -> state.endAt
+            is TimerState.Fading -> state.endAt
+            TimerState.Idle -> return state
+        }.let { now > it + Config.STALE_GRACE_MILLIS }
+        val stale = when (state) {
+            is TimerState.Fading -> pastEnd && !fadeRunning
+            else -> pastEnd
+        }
+        return if (stale) TimerState.Idle else state
+    }
+
     /** Idle で届いたイベント。古い通知やアラームの残りを片づけるだけ */
     private fun cleanUp() = Transition(TimerState.Idle, listOf(Effect.ClearCountdown, Effect.RefreshTile))
 }
