@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- フェード開始の正確なアラーム（Play ストアに出さないので USE_EXACT_ALARM でよい） -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- タイマー中の通知 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- FadeService（shortService は種類ごとの権限が要らない） -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application android:label="nod-off">
 
         <service
@@ -11,6 +18,16 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
+        <!-- 通知のボタンとフェード開始のアラーム。明示的な Intent だけで呼ぶ -->
+        <receiver
+            android:name=".TimerActionReceiver"
+            android:exported="false" />
+
+        <service
+            android:name=".FadeService"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
 
     </application>
 

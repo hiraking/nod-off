@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  nod-off のロゴの単色版（docs/design/logo.svg を VectorDrawable にしたもの）。通知とタイルで使う。
+  色はシステムが塗るので白で描く。
+  三日月はマスクを使わず、半径 6.4 の円（中心 30.5,9.2）と半径 5.6 の円（中心 34,5.6）の
+  交点 (36.774,10.465)・(29.059,2.964) を結ぶ 2 つの円弧で 1 本のパスにしている。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+
+    <!-- 小文字の n（地平線のアーチ） -->
+    <path
+        android:pathData="M10,33 V21 A9,9 0 0,1 28,21 V33"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="4.2"
+        android:strokeLineCap="round" />
+
+    <!-- 三日月 -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M36.774,10.465 A6.4,6.4 0 1,1 29.059,2.964 A5.6,5.6 0 0,0 36.774,10.465 Z" />
+</vector>
