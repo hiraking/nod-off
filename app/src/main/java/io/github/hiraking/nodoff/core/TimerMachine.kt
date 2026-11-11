@@ -1,0 +1,101 @@
+package io.github.hiraking.nodoff.core
+
+/*
+ * タイマーの状態機械。Android に依存しない純粋な Kotlin。
+ * 時刻はすべて SystemClock.elapsedRealtime() のミリ秒。
+ */
+
+sealed interface TimerState {
+    data object Idle : TimerState
+    data class Running(val endAt: Long) : TimerState
+    data class Fading(val endAt: Long) : TimerState
+}
+
+sealed interface TimerEvent {
+    data class TileTapped(val now: Long, val durationMin: Int) : TimerEvent
+    data object ExtendPressed : TimerEvent
+    data object CancelPressed : TimerEvent
+    data object FadeAlarmFired : TimerEvent
+
+    /** フェードと一時停止の処理が終わった */
+    data object FadeEnded : TimerEvent
+}
+
+sealed interface Effect {
+    /** at = endAt - FADE_MILLIS */
+    data class ScheduleFadeAlarm(val at: Long) : Effect
+    data object CancelFadeAlarm : Effect
+    data class ShowCountdown(val endAt: Long) : Effect
+    data object ClearCountdown : Effect
+
+    /** FadeService を起動する */
+    data object StartFade : Effect
+
+    /** FadeService を止める */
+    data object StopFade : Effect
+
+    /** 保存した音量があれば戻し、保存を消す */
+    data object RestoreVolumeNow : Effect
+    data object RefreshTile : Effect
+}
+
+data class Transition(val state: TimerState, val effects: List<Effect>)
+
+object TimerMachine {
+
+    fun reduce(state: TimerState, event: TimerEvent): Transition = when (event) {
+        is TimerEvent.TileTapped ->
+            // 状態にかかわらず「今から既定の時間で始め直す」
+            runUntil(state, event.now + event.durationMin * 60_000L)
+
+        TimerEvent.ExtendPressed -> when (state) {
+            is TimerState.Running -> runUntil(state, state.endAt + Config.EXTEND_MILLIS)
+            is TimerState.Fading -> runUntil(state, state.endAt + Config.EXTEND_MILLIS)
+            TimerState.Idle -> cleanUp()
+        }
+
+        TimerEvent.CancelPressed -> when (state) {
+            is TimerState.Running, is TimerState.Fading -> Transition(
+                TimerState.Idle,
+                stopFadeIfFading(state) +
+                    listOf(Effect.CancelFadeAlarm, Effect.ClearCountdown, Effect.RefreshTile),
+            )
+            TimerState.Idle -> cleanUp()
+        }
+
+        TimerEvent.FadeAlarmFired -> when (state) {
+            is TimerState.Running -> Transition(TimerState.Fading(state.endAt), listOf(Effect.StartFade))
+            // 二重に届いたアラーム。フェードは動いているので何もしない
+            is TimerState.Fading -> Transition(state, emptyList())
+            TimerState.Idle -> cleanUp()
+        }
+
+        TimerEvent.FadeEnded -> when (state) {
+            // 音量を戻すかは FadeService が RestorePolicy で決める
+            is TimerState.Fading -> Transition(
+                TimerState.Idle,
+                listOf(Effect.ClearCountdown, Effect.RefreshTile),
+            )
+            // 止めたフェードの終わりが遅れて届いた。次のタイマーを壊さない
+            is TimerState.Running -> Transition(state, emptyList())
+            TimerState.Idle -> cleanUp()
+        }
+    }
+
+    /** endAt まで動かす。フェード中なら先にフェードを止めて音量を戻す。 */
+    private fun runUntil(from: TimerState, endAt: Long) = Transition(
+        TimerState.Running(endAt),
+        stopFadeIfFading(from) + listOf(
+            Effect.CancelFadeAlarm,
+            Effect.ScheduleFadeAlarm(endAt - Config.FADE_MILLIS),
+            Effect.ShowCountdown(endAt),
+            Effect.RefreshTile,
+        ),
+    )
+
+    private fun stopFadeIfFading(state: TimerState): List<Effect> =
+        if (state is TimerState.Fading) listOf(Effect.StopFade, Effect.RestoreVolumeNow) else emptyList()
+
+    /** Idle で届いたイベント。古い通知やアラームの残りを片づけるだけ */
+    private fun cleanUp() = Transition(TimerState.Idle, listOf(Effect.ClearCountdown, Effect.RefreshTile))
+}
