@@ -22,6 +22,11 @@ class NodOffTileService : TileService() {
         render()
     }
 
+    /** パネルの編集からタイルが足されたとき。設定画面の「準備」を済みにする */
+    override fun onTileAdded() {
+        NodOffStore(this).tileAdded = true
+    }
+
     /** クイックパネルが開かれたとき（または RefreshTile で頼まれたとき） */
     override fun onStartListening() {
         TimerController.dispatchRestore(this, RestorePolicy.Trigger.APP_USED)

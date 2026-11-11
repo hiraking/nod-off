@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      SettingsActivity のウィンドウのテーマ。Compose が描くまでのあいだも黒にする（DESIGN.md：ダークテーマだけ）。
+      画面の色は Compose 側の NodOffTheme（ui/Theme.kt）で決める。
+    -->
+    <style name="Theme.NodOff" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+    </style>
+</resources>
