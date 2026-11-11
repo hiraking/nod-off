@@ -8,7 +8,7 @@
 
 **Tech Stack:** Kotlin 2.1.21、AGP 8.11.1、Gradle 8.14.3（Wrapper）、Jetpack Compose（BOM 2025.06.01、Material3）、activity-compose 1.10.1、JUnit 4.13.2。minSdk・targetSdk・compileSdk は 36。
 
-**Spec:** `docs/superpowers/specs/2026-11-11-nod-off-mvp-design.md`、見た目と文言は `DESIGN.md`（TODO.md の「実機検証の結果」も参照）
+**Spec:** `docs/superpowers/specs/2026-11-11-nod-off-mvp-design.md`、見た目と文言は `DESIGN.md`（当初の検証の結果は、設計書 §2 と git の履歴にある TODO.md を参照）
 
 ## Global Constraints
 
@@ -390,12 +390,12 @@ class FadeService : Service()
 ### Task 7: 実機での受け入れ確認（設計書 §7）
 
 **Files:**
-- Modify: `TODO.md`（Must のチェックと、確認の結果を書く）
+- Modify: 設計書 §7（確認の結果を書く。TODO.md は 2026-11-12 に削除した）
 - Modify: `docs/superpowers/specs/2026-11-11-nod-off-mvp-design.md`（フェードの長さを変えたら §4.3 を直す）
 
 - [ ] **Step 1: 完了の定義** — 利用者が実際に、Udemy Business で再生 → タイルを 1 回タップ → 画面を消して寝る。翌朝、次を確かめる：再生が一時停止で止まっていること、音量が戻っていること、続きから再生できること。ログは `adb logcat -d | grep -i nodoff` と `adb shell dumpsys media_session` で補う
 - [ ] **Step 2: 再起動後の視聴位置** — 一時停止のあと端末を再起動し、Udemy Business で続きから再生できるか
 - [ ] **Step 3: 方式 B の画面オフ** — 通知へのアクセスを一時的に外し、`DEBUG_START --ei seconds 45` を画面オフで流す。期待：Udemy Business が `PAUSED`。確かめたら通知へのアクセスを戻す
 - [ ] **Step 4: フェードの体感** — 利用者に 15 秒の長さと滑らかさを聞く。変えるなら `Config.FADE_MILLIS` と `ConfigTest`・`FadeCurveTest` の値、設計書 §4.3 を一緒に直す
-- [ ] **Step 5:** 結果を `TODO.md` に書き、Must の項目にチェックを付ける
+- [ ] **Step 5:** 結果を設計書 §7 に書く
 - [ ] **Step 6: コミット** — `docs: MVP の実機確認の結果を記録`
