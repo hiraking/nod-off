@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  アプリのアイコンの前景：ロゴを accent（#B9C3FF）で描く。形は ic_logo_mono と同じ（docs/design/logo.svg）。
+  ロゴの 40×40 の座標を 1.45 倍し、108dp の中央に置く（三日月の端まで中心から約 31dp で、
+  セーフゾーンの半径 33dp に収まる）。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:scaleX="1.45"
+        android:scaleY="1.45"
+        android:translateX="25"
+        android:translateY="25">
+
+        <!-- 小文字の n（地平線のアーチ） -->
+        <path
+            android:pathData="M10,33 V21 A9,9 0 0,1 28,21 V33"
+            android:strokeColor="#FFB9C3FF"
+            android:strokeWidth="4.2"
+            android:strokeLineCap="round" />
+
+        <!-- 三日月 -->
+        <path
+            android:fillColor="#FFB9C3FF"
+            android:pathData="M36.774,10.465 A6.4,6.4 0 1,1 29.059,2.964 A5.6,5.6 0 0,0 36.774,10.465 Z" />
+    </group>
+</vector>

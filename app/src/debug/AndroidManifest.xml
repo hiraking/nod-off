@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  debug ビルドだけの adb 用の入り口。TimerActionReceiver を外に開き、DEBUG_START を受ける。
+  使い方（am broadcast の引数）は計画の Task 4 Step 4 を参照。整数の extra「seconds」で何秒後に終わるかを渡す。
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <receiver
+            android:name=".TimerActionReceiver"
+            android:exported="true"
+            tools:replace="android:exported">
+            <intent-filter>
+                <action android:name="io.github.hiraking.nodoff.DEBUG_START" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
