@@ -29,3 +29,6 @@ Thumbs.db
 
 # Throwaway spikes (not committed)
 spike/
+
+# Brainstorm mockups
+.superpowers/

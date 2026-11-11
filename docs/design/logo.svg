@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <!-- nod-off のロゴ：小文字の n（地平線のアーチ）と三日月（大）。色は DESIGN.md の accent -->
+  <defs>
+    <mask id="crescent">
+      <rect width="40" height="40" fill="#fff"/>
+      <circle cx="34" cy="5.6" r="5.6" fill="#000"/>
+    </mask>
+  </defs>
+  <path d="M10 33 V21 a9 9 0 0 1 18 0 V33" fill="none" stroke="#B9C3FF" stroke-width="4.2" stroke-linecap="round"/>
+  <circle cx="30.5" cy="9.2" r="6.4" fill="#B9C3FF" mask="url(#crescent)"/>
+</svg>
