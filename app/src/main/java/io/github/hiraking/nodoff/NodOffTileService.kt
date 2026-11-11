@@ -29,7 +29,11 @@ class NodOffTileService : TileService() {
 
     /** クイックパネルが開かれたとき（または RefreshTile で頼まれたとき） */
     override fun onStartListening() {
-        TimerController.dispatchRestore(this, RestorePolicy.Trigger.APP_USED)
+        // フェードの途中は FadeService が音量を戻す。ここで戻すと保存が消え、下げ続けた音量が戻らなくなる。
+        // 保存の状態（Fading）はプロセスが落ちても残るので、フェードが本当に動いているかで判断する
+        if (!FadeService.running) {
+            TimerController.dispatchRestore(this, RestorePolicy.Trigger.APP_USED)
+        }
         render()
     }
 
