@@ -57,8 +57,10 @@ object TimerController {
     /**
      * debug だけの入口。[seconds] 秒後に終わるタイマーを始める。
      * 状態機械に debug 用の分岐を足さないよう、now をずらした 30 分のタイルのタップとして渡す。
+     * 動いているときのタップはキャンセルになるので、先に止めてから始める。
      */
     fun debugStart(context: Context, seconds: Int) {
+        if (currentState(context) != TimerState.Idle) dispatch(context, TimerEvent.CancelPressed)
         val now = SystemClock.elapsedRealtime()
         dispatch(context, TimerEvent.TileTapped(now + seconds * 1000L - DEBUG_DURATION_MIN * 60_000L, DEBUG_DURATION_MIN))
     }

@@ -20,28 +20,19 @@ class TimerMachineTest {
         )
     }
 
-    @Test fun tapWhileRunningRestartsFromNowNotAdds() {
+    @Test fun tapWhileRunningCancels() {
         val t = TimerMachine.reduce(TimerState.Running(endAt = 5_000_000L), TimerEvent.TileTapped(now = 2_000_000L, durationMin = 30))
-        assertEquals(TimerState.Running(3_800_000L), t.state)
-        assertEquals(
-            listOf(
-                Effect.CancelFadeAlarm, Effect.ScheduleFadeAlarm(3_800_000L - 15_000L),
-                Effect.ShowCountdown(3_800_000L), Effect.RefreshTile,
-            ),
-            t.effects,
-        )
+        assertEquals(TimerState.Idle, t.state)
+        assertEquals(listOf(Effect.CancelFadeAlarm, Effect.ClearCountdown, Effect.RefreshTile), t.effects)
     }
 
-    @Test fun tapWhileFadingRestoresVolumeFirst() {
+    @Test fun tapWhileFadingCancelsAndRestoresVolumeFirst() {
         val t = TimerMachine.reduce(TimerState.Fading(endAt = 100_000L), TimerEvent.TileTapped(now = 90_000L, durationMin = 30))
-        assertEquals(listOf(Effect.StopFade, Effect.RestoreVolumeNow), t.effects.take(2))
-        assertTrue(t.state is TimerState.Running)
-        assertEquals(TimerState.Running(1_890_000L), t.state)
+        assertEquals(TimerState.Idle, t.state)
         assertEquals(
             listOf(
                 Effect.StopFade, Effect.RestoreVolumeNow,
-                Effect.CancelFadeAlarm, Effect.ScheduleFadeAlarm(1_890_000L - 15_000L),
-                Effect.ShowCountdown(1_890_000L), Effect.RefreshTile,
+                Effect.CancelFadeAlarm, Effect.ClearCountdown, Effect.RefreshTile,
             ),
             t.effects,
         )

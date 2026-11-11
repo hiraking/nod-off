@@ -33,8 +33,11 @@ class EffectRunner(context: Context) {
             // stopService は非同期。音量を下げ続けないよう、FadeService のループが状態を確かめて抜ける
             Effect.StopFade -> app.stopService(Intent(app, FadeService::class.java))
             Effect.RestoreVolumeNow -> restoreVolumeNow()
-            // タイルを listening にしてもらい、onStartListening で描き直す
-            Effect.RefreshTile -> TileService.requestListeningState(app, ComponentName(app, NodOffTileService::class.java))
+            // パネルが開いていて表示中なら直接描き直す。閉じていれば listening にしてもらい、onStartListening で描き直す
+            Effect.RefreshTile -> {
+                NodOffTileService.renderIfListening()
+                TileService.requestListeningState(app, ComponentName(app, NodOffTileService::class.java))
+            }
         }
     }
 

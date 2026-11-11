@@ -11,14 +11,14 @@ import io.github.hiraking.nodoff.platform.NodOffStore
 
 /**
  * クイック設定のタイル（主な入り口）。表示は DESIGN.md「タイル」。
- * タップは状態にかかわらず「今から既定の時間で始め直す」。タイルからはキャンセルしない。
+ * タップは ON／OFF の切り替え：止まっていれば既定の時間で始め、動いていれば（フェード中も）キャンセルする。
  */
 class NodOffTileService : TileService() {
 
     override fun onClick() {
         val store = NodOffStore(this)
         // 利用者がタイルを使った＝起きている。前の晩に戻せなかった音量があれば戻す（設計書 §4.3）。
-        // フェードの途中なら、TileTapped の RestoreVolumeNow が戻すので、ここでは触らない
+        // フェードの途中なら、TileTapped（キャンセル）の RestoreVolumeNow が戻すので、ここでは触らない
         if (!FadeService.running) {
             TimerController.dispatchRestore(this, RestorePolicy.Trigger.APP_USED)
         }
@@ -43,7 +43,12 @@ class NodOffTileService : TileService() {
      * まだ再生中なのに音量を戻してしまう（設計書 §3 の失敗）。音量を戻すのは onClick だけ。
      */
     override fun onStartListening() {
+        listening = this
         render()
+    }
+
+    override fun onStopListening() {
+        if (listening === this) listening = null
     }
 
     private fun render() {
@@ -67,11 +72,23 @@ class NodOffTileService : TileService() {
         tile.subtitle = "残り ${remainingMinutesCeil(endAt - SystemClock.elapsedRealtime())} 分"
     }
 
-    private companion object {
-        const val LABEL = "nod-off"
+    companion object {
+        private const val LABEL = "nod-off"
+
+        /**
+         * いまパネルに表示されていて listening 中のタイル。表示中は requestListeningState が
+         * onStartListening を呼び直さないので、通知からキャンセルしたときなどはこれを直接描き直す。
+         * メインスレッドだけで読み書きする。
+         */
+        private var listening: NodOffTileService? = null
+
+        /** 表示中のタイルがあれば、いまの状態ですぐ描き直す */
+        fun renderIfListening() {
+            listening?.render()
+        }
 
         /** 残りのミリ秒を分に切り上げる（フェード中に終了時刻を過ぎても「残り 0 分」とは出さず 1 分で止める） */
-        fun remainingMinutesCeil(remainingMillis: Long): Long =
+        private fun remainingMinutesCeil(remainingMillis: Long): Long =
             if (remainingMillis <= 0) 1 else (remainingMillis + 59_999L) / 60_000L
     }
 }

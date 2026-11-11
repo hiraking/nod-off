@@ -44,9 +44,11 @@ data class Transition(val state: TimerState, val effects: List<Effect>)
 object TimerMachine {
 
     fun reduce(state: TimerState, event: TimerEvent): Transition = when (event) {
-        is TimerEvent.TileTapped ->
-            // 状態にかかわらず「今から既定の時間で始め直す」
-            runUntil(state, event.now + event.durationMin * 60_000L)
+        is TimerEvent.TileTapped -> when (state) {
+            // 止まっていれば既定の時間で始め、動いていれば（フェード中も）キャンセルする。ON／OFF の切り替え
+            TimerState.Idle -> runUntil(state, event.now + event.durationMin * 60_000L)
+            is TimerState.Running, is TimerState.Fading -> cancel(state)
+        }
 
         TimerEvent.ExtendPressed -> when (state) {
             is TimerState.Running -> runUntil(state, state.endAt + Config.EXTEND_MILLIS)
@@ -55,11 +57,7 @@ object TimerMachine {
         }
 
         TimerEvent.CancelPressed -> when (state) {
-            is TimerState.Running, is TimerState.Fading -> Transition(
-                TimerState.Idle,
-                stopFadeIfFading(state) +
-                    listOf(Effect.CancelFadeAlarm, Effect.ClearCountdown, Effect.RefreshTile),
-            )
+            is TimerState.Running, is TimerState.Fading -> cancel(state)
             TimerState.Idle -> cleanUp()
         }
 
@@ -91,6 +89,12 @@ object TimerMachine {
             Effect.ShowCountdown(endAt),
             Effect.RefreshTile,
         ),
+    )
+
+    /** タイマーを止める。フェード中なら先にフェードを止めて音量を戻す。 */
+    private fun cancel(from: TimerState) = Transition(
+        TimerState.Idle,
+        stopFadeIfFading(from) + listOf(Effect.CancelFadeAlarm, Effect.ClearCountdown, Effect.RefreshTile),
     )
 
     private fun stopFadeIfFading(state: TimerState): List<Effect> =

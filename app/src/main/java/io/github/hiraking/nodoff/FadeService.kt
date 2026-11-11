@@ -105,7 +105,7 @@ class FadeService : Service() {
 
     override fun onDestroy() {
         scope.cancel()
-        // REMOVE だと、+10 分やタイルで始め直したときのカウントダウンまで消える。
+        // REMOVE だと、フェード中に +10 分で延ばしたときのカウントダウンまで消える。
         // 通知はサービスから切り離し、保存された状態に合わせて出し直すか消す
         stopForeground(STOP_FOREGROUND_DETACH)
         when (val state = NodOffStore(this).state) {
