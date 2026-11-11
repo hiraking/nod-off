@@ -2,9 +2,12 @@ package io.github.hiraking.nodoff.platform
 
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.service.quicksettings.TileService
 import io.github.hiraking.nodoff.FadeService
+import io.github.hiraking.nodoff.NodOffTileService
 import io.github.hiraking.nodoff.TimerActionReceiver
 import io.github.hiraking.nodoff.core.Effect
 
@@ -30,7 +33,8 @@ class EffectRunner(context: Context) {
             // stopService は非同期。音量を下げ続けないよう、FadeService のループが状態を確かめて抜ける
             Effect.StopFade -> app.stopService(Intent(app, FadeService::class.java))
             Effect.RestoreVolumeNow -> restoreVolumeNow()
-            Effect.RefreshTile -> Unit // タイルは Task 5 で作る
+            // タイルを listening にしてもらい、onStartListening で描き直す
+            Effect.RefreshTile -> TileService.requestListeningState(app, ComponentName(app, NodOffTileService::class.java))
         }
     }
 

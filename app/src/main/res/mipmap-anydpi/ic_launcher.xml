@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- アプリのアイコン（DESIGN.md「ロゴ」）。単色（テーマアイコン用）はタイル・通知と同じ ic_logo_mono を縮めて使う -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome>
+        <!-- 前景と同じ大きさ（108dp のうち約 58dp）に収めて、セーフゾーンからはみ出さないようにする -->
+        <inset
+            android:drawable="@drawable/ic_logo_mono"
+            android:inset="23%" />
+    </monochrome>
+</adaptive-icon>
