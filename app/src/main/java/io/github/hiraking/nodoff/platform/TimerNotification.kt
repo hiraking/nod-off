@@ -19,7 +19,7 @@ object TimerNotification {
     const val NOTIFICATION_ID = 1
 
     private const val CHANNEL_NAME = "タイマー"
-    private const val TITLE = "nod-off"
+    private const val TITLE = "Nod Off"
     private const val ACTION_EXTEND_LABEL = "+10 分"
     private const val ACTION_CANCEL_LABEL = "キャンセル"
 

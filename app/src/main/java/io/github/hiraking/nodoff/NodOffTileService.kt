@@ -73,7 +73,7 @@ class NodOffTileService : TileService() {
     }
 
     companion object {
-        private const val LABEL = "nod-off"
+        private const val LABEL = "Nod Off"
 
         /**
          * いまパネルに表示されていて listening 中のタイル。表示中は requestListeningState が

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  nod-off のロゴの単色版（docs/design/logo.svg を VectorDrawable にしたもの）。通知とタイルで使う。
+  Nod Off のロゴの単色版（docs/design/logo.svg を VectorDrawable にしたもの）。通知とタイルで使う。
   色はシステムが塗るので白で描く。
   三日月はマスクを使わず、半径 6.4 の円（中心 30.5,9.2）と半径 5.6 の円（中心 34,5.6）の
   交点 (36.774,10.465)・(29.059,2.964) を結ぶ 2 つの円弧で 1 本のパスにしている。

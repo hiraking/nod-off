@@ -157,7 +157,7 @@ class SettingsActivity : ComponentActivity() {
     private fun requestAddTile() {
         getSystemService(StatusBarManager::class.java).requestAddTileService(
             ComponentName(this, NodOffTileService::class.java),
-            "nod-off",
+            "Nod Off",
             Icon.createWithResource(this, R.drawable.ic_logo_mono),
             mainExecutor,
         ) { result ->
@@ -274,7 +274,7 @@ private fun Header() {
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            text = "nod-off",
+            text = "Nod Off",
             style = TextStyle(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.W600,

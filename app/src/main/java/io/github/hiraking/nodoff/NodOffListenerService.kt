@@ -49,7 +49,7 @@ class NodOffListenerService : NotificationListenerService() {
         connected = true
 
         // ACTION_USER_PRESENT はマニフェストでは受けられないので動的に登録する。
-        // 送り手はシステム UI（画面ロック）で、nod-off とは別の uid なので RECEIVER_EXPORTED にする。
+        // 送り手はシステム UI（画面ロック）で、Nod Off とは別の uid なので RECEIVER_EXPORTED にする。
         // NOT_EXPORTED だと実機（One UI 8.5）で届かなかった。保護されたブロードキャストなので、ほかのアプリは送れない
         registerReceiver(unlockReceiver, IntentFilter(Intent.ACTION_USER_PRESENT), RECEIVER_EXPORTED)
 

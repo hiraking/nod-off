@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
-  <!-- nod-off のロゴ：小文字の n（地平線のアーチ）と三日月（大）。色は DESIGN.md の accent -->
+  <!-- Nod Off のロゴ：小文字の n（地平線のアーチ）と三日月（大）。色は DESIGN.md の accent -->
   <defs>
     <mask id="crescent">
       <rect width="40" height="40" fill="#fff"/>
